@@ -20,8 +20,7 @@ export default function CharacterForm({ onAdd, onCancel, showCancel }) {
 
   const needsSubtype = ['Animal', 'Fantasy Creature', 'Talking Object', 'Fairy', 'Dragon'].includes(form.type)
 
-  function handleSubmit(e) {
-    e.preventDefault()
+  function handleSubmit() {
     if (!form.name.trim()) {
       setError('Please give your character a name.')
       return
@@ -36,7 +35,7 @@ export default function CharacterForm({ onAdd, onCancel, showCancel }) {
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit} noValidate>
+    <div className={styles.form}>
       <div className={styles.row}>
         <div className="form-group" style={{ flex: 1 }}>
           <label className="form-label" htmlFor="char-name">Name</label>
@@ -114,10 +113,10 @@ export default function CharacterForm({ onAdd, onCancel, showCancel }) {
             Cancel
           </button>
         )}
-        <button type="submit" className="btn btn-secondary">
+        <button type="button" className="btn btn-secondary" onClick={handleSubmit}>
           + Add Character
         </button>
       </div>
-    </form>
+    </div>
   )
 }
