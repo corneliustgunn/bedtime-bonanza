@@ -23,12 +23,27 @@ const SETTINGS = [
 ]
 
 const THEMES = [
-  { value: 'friendship', label: '🤝 Friendship' },
-  { value: 'kindness', label: '💛 Kindness' },
-  { value: 'bravery', label: '🦁 Bravery' },
-  { value: 'curiosity', label: '🔍 Curiosity' },
-  { value: 'sharing', label: '🎁 Sharing' },
-  { value: 'patience', label: '🌱 Patience' },
+  { value: 'friendship',   label: '🤝 Friendship'    },
+  { value: 'kindness',     label: '💛 Kindness'       },
+  { value: 'bravery',      label: '🦁 Bravery'        },
+  { value: 'curiosity',    label: '🔍 Curiosity'      },
+  { value: 'sharing',      label: '🎁 Sharing'        },
+  { value: 'patience',     label: '🌱 Patience'       },
+  { value: 'creativity',   label: '🎨 Creativity'     },
+  { value: 'empathy',      label: '🤗 Empathy'        },
+  { value: 'perseverance', label: '💪 Perseverance'   },
+  { value: 'gratitude',    label: '🙏 Gratitude'      },
+  { value: 'honesty',      label: '🛡️ Honesty'        },
+  { value: 'acceptance',   label: '🌈 Acceptance'     },
+  { value: 'helpfulness',  label: '🤲 Helpfulness'    },
+  { value: 'joy',          label: '🎵 Joy'            },
+  { value: 'imagination',  label: '💭 Imagination'    },
+  { value: 'family',       label: '🏡 Family'         },
+  { value: 'self-love',    label: '❤️ Being Yourself' },
+  { value: 'growing-up',   label: '🦋 Growing Up'     },
+  { value: 'nature',       label: '🌿 Nature'         },
+  { value: 'dreams',       label: '🌙 Dreams'         },
+  { value: 'learning',     label: '📚 Learning'       },
 ]
 
 const DEFAULT_SETTINGS = {
@@ -46,6 +61,11 @@ export default function BuildPage() {
 
   function setSetting(field) {
     return (e) => setSettings((s) => ({ ...s, [field]: e.target.value }))
+  }
+
+  function pickRandomTheme() {
+    const random = THEMES[Math.floor(Math.random() * THEMES.length)]
+    setSettings((s) => ({ ...s, theme: random.value }))
   }
 
   async function handleGenerate(e) {
@@ -110,7 +130,12 @@ export default function BuildPage() {
               </div>
 
               <div className="form-group">
-                <label className="form-label" htmlFor="theme">Story Theme</label>
+                <div className={styles.themeLabelRow}>
+                  <label className="form-label" htmlFor="theme">Story Theme</label>
+                  <button type="button" className={styles.randomBtn} onClick={pickRandomTheme} title="Pick a random theme">
+                    🎲
+                  </button>
+                </div>
                 <div className="select-wrapper">
                   <select id="theme" className="form-select" value={settings.theme} onChange={setSetting('theme')}>
                     {THEMES.map((t) => (
@@ -124,8 +149,9 @@ export default function BuildPage() {
                 <label className="form-label">Story Length</label>
                 <div className={styles.lengthToggle}>
                   {[
-                    { value: 'short', label: 'Short', sub: '~3 min read' },
-                    { value: 'medium', label: 'Medium', sub: '~5 min read' },
+                    { value: 'quick',  label: '1 min', sub: 'Tiny tale'   },
+                    { value: 'short',  label: '3 min', sub: 'Short story' },
+                    { value: 'medium', label: '5 min', sub: 'Full story'  },
                   ].map((opt) => (
                     <label
                       key={opt.value}

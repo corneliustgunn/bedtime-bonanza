@@ -71,6 +71,30 @@
 .generateBtn {
   width: 100%;
   font-size: 1.125rem;
+  background-color: #7b8cde;
+}
+.generateBtn:hover:not(:disabled) {
+  background-color: #6070c8;
+}
+
+.themeLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.randomBtn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.1rem 0.3rem;
+  border-radius: var(--radius-sm);
+  line-height: 1;
+  transition: transform 0.15s;
+}
+.randomBtn:hover {
+  transform: rotate(20deg) scale(1.2);
 }
 
 @media (min-width: 480px) {
