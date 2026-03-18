@@ -12,7 +12,11 @@ const app = express()
 const PORT = process.env.PORT || 3001
 
 // ── Middleware ──────────────────────────────────────────────────────────────
-app.use(cors({ origin: process.env.NODE_ENV === 'production' ? false : '*' }))
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production'
+    ? (process.env.CORS_ORIGIN || false)
+    : '*',
+}))
 app.use(express.json())
 
 const limiter = rateLimit({
