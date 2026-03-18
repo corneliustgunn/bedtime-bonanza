@@ -83,11 +83,16 @@ export default function BuildPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ characters, settings }),
       })
-      const data = await res.json()
       if (!res.ok) {
-        setError(data.error || 'Something went wrong. Please try again.')
+        let message = 'Something went wrong. Please try again.'
+        try {
+          const data = await res.json()
+          if (data.error) message = data.error
+        } catch { /* non-JSON error body */ }
+        setError(message)
         return
       }
+      const data = await res.json()
       navigate('/story', { state: { story: data } })
     } catch {
       setError('Could not reach the story server. Please check your connection.')
