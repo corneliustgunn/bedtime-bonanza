@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: bedtime-bonanza-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://corneliustgunn.github.io

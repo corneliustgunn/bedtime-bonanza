@@ -1,10 +1,11 @@
 {
   "name": "bedtime-bonanza",
   "private": true,
+  "workspaces": ["server", "client"],
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "build": "npm run build --prefix client",
-    "start": "npm run start --prefix server"
+    "start": "node server/index.js"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
