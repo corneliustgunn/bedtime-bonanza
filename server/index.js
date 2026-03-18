@@ -64,7 +64,9 @@ function buildUserPrompt(characters, settings) {
     return `- ${name} is a ${trait} ${description}${appearancePart}.`
   })
 
-  const wordCount = settings.length === 'short' ? '250-300 words' : '450-500 words'
+  const wordCount = settings.length === 'quick' ? '80-100 words'
+    : settings.length === 'short' ? '250-300 words'
+    : '450-500 words'
 
   return `Write a bedtime story with these characters:
 
@@ -115,8 +117,8 @@ app.post('/api/story', limiter, async (req, res) => {
   if (!settings?.setting || !settings?.theme || !settings?.length) {
     return res.status(400).json({ error: 'Story setting, theme, and length are required.' })
   }
-  if (!['short', 'medium'].includes(settings.length)) {
-    return res.status(400).json({ error: 'Length must be "short" or "medium".' })
+  if (!['quick', 'short', 'medium'].includes(settings.length)) {
+    return res.status(400).json({ error: 'Length must be "quick", "short", or "medium".' })
   }
 
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -125,7 +127,9 @@ app.post('/api/story', limiter, async (req, res) => {
 
   try {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-    const maxTokens = settings.length === 'short' ? 600 : 900
+    const maxTokens = settings.length === 'quick' ? 300
+      : settings.length === 'short' ? 600
+      : 900
 
     const message = await client.messages.create({
       model: 'claude-3-5-haiku-20241022',
