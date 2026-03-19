@@ -18,8 +18,8 @@ export default function StoryPage() {
   if (!story) return null
 
   return (
-    <div className="page">
-      <div className="container">
+    <div className={`page ${styles.page}`}>
+      <div className={`container ${styles.container}`}>
         <Header />
 
         <main className={styles.main}>

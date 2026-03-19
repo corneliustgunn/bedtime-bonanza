@@ -1,8 +1,20 @@
+/* Make the story page fill the full viewport height on mobile */
+.page {
+  min-height: 100dvh; /* dvh accounts for collapsing mobile browser chrome */
+  padding-bottom: 1rem;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
 .main {
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  padding-bottom: 2rem;
+  flex: 1;
 }
 
 .actions {
