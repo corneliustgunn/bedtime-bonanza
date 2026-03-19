@@ -63,6 +63,11 @@ export default function BuildPage() {
     return (e) => setSettings((s) => ({ ...s, [field]: e.target.value }))
   }
 
+  function pickRandomSetting() {
+    const random = SETTINGS[Math.floor(Math.random() * SETTINGS.length)]
+    setSettings((s) => ({ ...s, setting: random }))
+  }
+
   function pickRandomTheme() {
     const random = THEMES[Math.floor(Math.random() * THEMES.length)]
     setSettings((s) => ({ ...s, theme: random.value }))
@@ -124,7 +129,12 @@ export default function BuildPage() {
 
             <div className={styles.settingsGrid}>
               <div className="form-group">
-                <label className="form-label" htmlFor="setting">World / Setting</label>
+                <div className={styles.themeLabelRow}>
+                  <label className="form-label" htmlFor="setting">World / Setting</label>
+                  <button type="button" className={styles.randomBtn} onClick={pickRandomSetting} title="Pick a random setting">
+                    🎲
+                  </button>
+                </div>
                 <div className="select-wrapper">
                   <select id="setting" className="form-select" value={settings.setting} onChange={setSetting('setting')}>
                     {SETTINGS.map((s) => (

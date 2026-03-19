@@ -12,6 +12,30 @@ const SUBTYPE_PLACEHOLDER = {
   Dragon: 'e.g. little fire dragon, cloud dragon',
 }
 
+const RANDOM_NAMES = [
+  'Luna', 'Kofi', 'Mia', 'Finn', 'Zara', 'Leo', 'Nora', 'Eli',
+  'Isla', 'Omar', 'Cleo', 'Jasper', 'Wren', 'Theo', 'Aria', 'Remi',
+  'Sage', 'Kai', 'Nova', 'Beau',
+]
+
+const RANDOM_SUBTYPES = {
+  Animal: ['bunny', 'elephant', 'fox', 'owl', 'bear cub', 'penguin', 'turtle', 'hedgehog', 'deer', 'otter'],
+  'Fantasy Creature': ['unicorn', 'phoenix', 'sprite', 'gnome', 'griffin', 'cloud spirit', 'sea serpent'],
+  'Talking Object': ['teapot', 'lantern', 'book', 'umbrella', 'music box', 'compass', 'mirror'],
+  Fairy: ['flower fairy', 'moon fairy', 'rain fairy', 'forest fairy', 'star fairy'],
+  Dragon: ['little fire dragon', 'cloud dragon', 'tiny ice dragon', 'rainbow dragon'],
+}
+
+const RANDOM_APPEARANCES = [
+  'fluffy orange fur', 'sparkly blue wings', 'long curly hair',
+  'shimmering silver scales', 'big round glasses', 'a tiny red cape',
+  'striped rainbow tail', 'glowing green eyes', 'rosy cheeks', 'patchy purple spots',
+]
+
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
 export default function CharacterForm({ onAdd, onCancel, showCancel }) {
   const [form, setForm] = useState({ name: '', type: 'Human', subtype: '', appearance: '', trait: 'Kind' })
   const [error, setError] = useState('')
@@ -19,6 +43,19 @@ export default function CharacterForm({ onAdd, onCancel, showCancel }) {
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
   const needsSubtype = ['Animal', 'Fantasy Creature', 'Talking Object', 'Fairy', 'Dragon'].includes(form.type)
+
+  function randomize() {
+    const type = pickRandom(CHARACTER_TYPES)
+    const subtypeList = RANDOM_SUBTYPES[type]
+    setForm({
+      name: pickRandom(RANDOM_NAMES),
+      type,
+      subtype: subtypeList ? pickRandom(subtypeList) : '',
+      appearance: Math.random() > 0.4 ? pickRandom(RANDOM_APPEARANCES) : '',
+      trait: pickRandom(TRAITS),
+    })
+    setError('')
+  }
 
   function handleSubmit() {
     if (!form.name.trim()) {
@@ -113,6 +150,9 @@ export default function CharacterForm({ onAdd, onCancel, showCancel }) {
             Cancel
           </button>
         )}
+        <button type="button" className={`btn btn-ghost btn-sm ${styles.randomizeBtn}`} onClick={randomize} title="Fill with a random character">
+          🎲 Surprise me
+        </button>
         <button type="button" className="btn btn-secondary" onClick={handleSubmit}>
           + Add Character
         </button>
