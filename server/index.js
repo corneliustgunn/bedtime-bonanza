@@ -41,6 +41,8 @@ Rules you must follow:
 - Represent the world's diversity naturally: settings, names, foods, landscapes, and traditions from many cultures are welcome and normal.
 - Do not use generic filler words. Make sensory details specific and vivid (sounds, smells, textures).
 - Each paragraph should be 2-3 short sentences, suitable for reading aloud at a slow, soothing pace.
+- Never use these overused phrases: "painting the sky", "drifted off to dreamland", "stars twinkling like diamonds", "the sun smiled down", "a magical adventure", "snuggled up tight", "fast asleep", "drifting off", "twinkled in the night", "soft as a cloud". Find fresher, more specific images instead.
+- Each paragraph must be anchored to a different sense: one paragraph focuses on a sound, another on a smell or texture, another on something seen up close — not from a distance. Vary which sense leads each paragraph.
 
 Format your response EXACTLY like this (no extra text before or after):
 TITLE: [a short, warm story title]
@@ -52,6 +54,32 @@ STORY:
 [paragraph 3]
 
 ...and so on`
+
+// Specific cultural/sensory details per setting — injected into the user prompt
+// to ground stories in authentic local texture rather than generic descriptions.
+const SETTING_DETAILS = {
+  'African savanna':          ['red dust settling on your feet', 'the two-note call of a go-away bird', 'the sweet-sharp smell of marula fruit'],
+  'Japanese countryside':     ['the loud shriek of cicadas in the trees', 'damp earth near a rice paddy after rain', 'the sharp green smell of cedar'],
+  'Indian village':           ['the scent of jasmine garlands hung by the door', 'clay pots still warm from the kiln', 'the jingle of anklet bells nearby'],
+  'Norwegian fjords':         ['cold mist settling on your cheeks', 'the distant splash of a gannet diving', 'pine resin and sea salt in the air'],
+  'Mexican rainforest':       ['howler monkeys calling far in the canopy', 'the sticky sweetness of a ripe sapodilla', 'green light pouring through the ceiba branches'],
+  'Moroccan medina':          ['the smell of cumin and saffron drifting from a nearby stall', 'cool painted tile under bare feet', 'the low beat of a darbuka drum'],
+  'Australian outback':       ['fine red sand between your toes', 'a kookaburra laughing somewhere close', 'the sky turning deep orange near the rocks'],
+  'Brazilian ocean coast':    ['warm wet sand pressing up between your toes', 'the fresh smell of green coconut water', 'waves shushing the shore again and again'],
+  'Chinese mountain village': ['woodsmoke curling up past the rooftops', 'osmanthus blossoms with their apricot smell', 'thick white mist filling the valley below'],
+  'Enchanted forest':         ['tiny mushrooms that glow faintly in the dark', 'a low hum in the air like something breathing', 'leaves chiming softly when the breeze passes'],
+  'Underwater kingdom':       ['bubbles tickling the tip of your nose', 'sea grass swaying back and forth like slow hands', 'rippled light making blue-green patterns on everything'],
+  'Snowy Arctic tundra':      ['your breath turning to a little white cloud', 'fresh snow squeaking under each step', 'silence so wide you can hear your own heartbeat'],
+  'Busy city':                ['the smell of warm bread drifting from a bakery window', 'pigeons cooing softly on a ledge above', 'street lights blinking on one by one as the sky darkens'],
+  'Floating sky islands':     ['clouds soft as rolled dough beneath your feet', 'wind that smells of rain and wildflowers at once', 'small birds glowing gold like paper lanterns'],
+}
+
+// Injected per request to vary vocabulary and push away from clichéd imagery.
+const SENSORY_SEEDS = [
+  'velvety', 'crinkly', 'bubbly', 'feather-soft', 'warm-bread-smell',
+  'puddle-cool', 'mossy', 'honeyed', 'rumbling', 'glimmery',
+  'squeaky', 'fizzy', 'dusty-warm', 'dewy', 'pillowy',
+]
 
 function buildUserPrompt(characters, settings) {
   const sanitize = (str) => String(str || '').replace(/<[^>]*>/g, '').trim()
@@ -71,16 +99,25 @@ function buildUserPrompt(characters, settings) {
     : settings.length === 'short' ? '250-300 words'
     : '450-500 words'
 
+  const settingKey = sanitize(settings.setting)
+  const culturalDetails = SETTING_DETAILS[settingKey] || []
+  const culturalHint = culturalDetails.length > 0
+    ? `Ground the story in this setting by naturally including at least one of these specific details: ${culturalDetails.join('; ')}.`
+    : `Reflect the culture, landscape, food, and environment of "${settingKey}" naturally in the details.`
+
+  const seed = SENSORY_SEEDS[Math.floor(Math.random() * SENSORY_SEEDS.length)]
+
   return `Write a bedtime story with these characters:
 
 ${characterLines.join('\n')}
 
-The story takes place in: ${sanitize(settings.setting)}.
+The story takes place in: ${settingKey}.
 The story is about: ${sanitize(settings.theme)}.
 Total length: approximately ${wordCount} across all paragraphs.
 
 Make sure every character listed appears in the story and plays a meaningful role.
-Reflect the culture, landscape, food, and environment of "${sanitize(settings.setting)}" naturally in the details.
+${culturalHint}
+Somewhere in the story, use a detail that evokes the feeling of something "${seed}" — weave it in naturally.
 End the story gently so the child listening feels sleepy and safe.`
 }
 
