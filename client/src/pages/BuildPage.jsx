@@ -63,6 +63,11 @@ export default function BuildPage() {
     return (e) => setSettings((s) => ({ ...s, [field]: e.target.value }))
   }
 
+  function pickRandomSetting() {
+    const random = SETTINGS[Math.floor(Math.random() * SETTINGS.length)]
+    setSettings((s) => ({ ...s, setting: random }))
+  }
+
   function pickRandomTheme() {
     const random = THEMES[Math.floor(Math.random() * THEMES.length)]
     setSettings((s) => ({ ...s, theme: random.value }))
@@ -83,11 +88,16 @@ export default function BuildPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ characters, settings }),
       })
-      const data = await res.json()
       if (!res.ok) {
-        setError(data.error || 'Something went wrong. Please try again.')
+        let message = 'Something went wrong. Please try again.'
+        try {
+          const data = await res.json()
+          if (data.error) message = data.error
+        } catch { /* non-JSON error body */ }
+        setError(message)
         return
       }
+      const data = await res.json()
       navigate('/story', { state: { story: data } })
     } catch {
       setError('Could not reach the story server. Please check your connection.')
@@ -119,7 +129,12 @@ export default function BuildPage() {
 
             <div className={styles.settingsGrid}>
               <div className="form-group">
-                <label className="form-label" htmlFor="setting">World / Setting</label>
+                <div className={styles.themeLabelRow}>
+                  <label className="form-label" htmlFor="setting">World / Setting</label>
+                  <button type="button" className={styles.randomBtn} onClick={pickRandomSetting} title="Pick a random setting">
+                    🎲
+                  </button>
+                </div>
                 <div className="select-wrapper">
                   <select id="setting" className="form-select" value={settings.setting} onChange={setSetting('setting')}>
                     {SETTINGS.map((s) => (
