@@ -11,6 +11,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const app = express()
 const PORT = process.env.PORT || 3001
 
+// Trust Render's load balancer so express-rate-limit can read the real client IP
+if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1)
+
 // ── Middleware ──────────────────────────────────────────────────────────────
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
@@ -132,7 +135,7 @@ app.post('/api/story', limiter, async (req, res) => {
       : 900
 
     const message = await client.messages.create({
-      model: 'claude-3-5-haiku-20241022',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: maxTokens,
       system: SYSTEM_PROMPT,
       messages: [{ role: 'user', content: buildUserPrompt(characters, settings) }],
