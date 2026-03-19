@@ -40,7 +40,7 @@ Rules you must follow:
 - The story must end with the characters feeling sleepy, cozy, or peacefully happy — gently encouraging the child to sleep.
 - Represent the world's diversity naturally: settings, names, foods, landscapes, and traditions from many cultures are welcome and normal.
 - Do not use generic filler words. Make sensory details specific and vivid (sounds, smells, textures).
-- Each paragraph should be 2-3 short sentences, suitable for reading aloud at a slow, soothing pace.
+- Each paragraph is one page. Write 4-6 short sentences per page — a complete moment with one clear image or action. Suitable for reading aloud at a slow, soothing pace.
 - Never use these overused phrases: "painting the sky", "drifted off to dreamland", "stars twinkling like diamonds", "the sun smiled down", "a magical adventure", "snuggled up tight", "fast asleep", "drifting off", "twinkled in the night", "soft as a cloud". Find fresher, more specific images instead.
 - Each paragraph must be anchored to a different sense: one paragraph focuses on a sound, another on a smell or texture, another on something seen up close — not from a distance. Vary which sense leads each paragraph.
 
@@ -167,9 +167,9 @@ app.post('/api/story', limiter, async (req, res) => {
 
   try {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-    const maxTokens = settings.length === 'quick' ? 300
-      : settings.length === 'short' ? 600
-      : 900
+    const maxTokens = settings.length === 'quick' ? 400
+      : settings.length === 'short' ? 800
+      : 1200
 
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
