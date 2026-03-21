@@ -31,116 +31,80 @@ const limiter = rateLimit({
 })
 
 // ── Prompt builder ──────────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are a gentle, imaginative storyteller who creates bedtime stories for children aged 2-5.
+const sanitize = (str) => String(str || '').replace(/<[^>]*>/g, '').trim()
 
-Rules you must follow:
-- Use simple words a 2-year-old can understand. Short sentences (max 10 words each). Calm, soothing tone.
-- Stories must have a clear beginning, middle, and end.
-- Themes must be gentle: no scary villains, no violence, no death, no conflict that causes fear.
-- The story must end with the characters feeling sleepy, cozy, or peacefully happy — gently encouraging the child to sleep.
-- Represent the world's diversity naturally: settings, names, foods, landscapes, and traditions from many cultures are welcome and normal.
-- Do not use generic filler words. Make sensory details specific and vivid (sounds, smells, textures).
-- Each paragraph is one page. Write 4-6 short sentences per page — a complete moment with one clear image or action. Suitable for reading aloud at a slow, soothing pace.
-- Never use these overused phrases: "painting the sky", "drifted off to dreamland", "stars twinkling like diamonds", "the sun smiled down", "a magical adventure", "snuggled up tight", "fast asleep", "drifting off", "twinkled in the night", "soft as a cloud". Find fresher, more specific images instead.
-- Each paragraph must be anchored to a different sense: one paragraph focuses on a sound, another on a smell or texture, another on something seen up close — not from a distance. Vary which sense leads each paragraph.
-
-Format your response EXACTLY like this (no extra text before or after):
-TITLE: [a short, warm story title]
-STORY:
-[paragraph 1]
-
-[paragraph 2]
-
-[paragraph 3]
-
-...and so on`
-
-// Specific cultural/sensory details per setting — injected into the user prompt
-// to ground stories in authentic local texture rather than generic descriptions.
-const SETTING_DETAILS = {
-  'African savanna':          ['red dust settling on your feet', 'the two-note call of a go-away bird', 'the sweet-sharp smell of marula fruit'],
-  'Japanese countryside':     ['the loud shriek of cicadas in the trees', 'damp earth near a rice paddy after rain', 'the sharp green smell of cedar'],
-  'Indian village':           ['the scent of jasmine garlands hung by the door', 'clay pots still warm from the kiln', 'the jingle of anklet bells nearby'],
-  'Norwegian fjords':         ['cold mist settling on your cheeks', 'the distant splash of a gannet diving', 'pine resin and sea salt in the air'],
-  'Mexican rainforest':       ['howler monkeys calling far in the canopy', 'the sticky sweetness of a ripe sapodilla', 'green light pouring through the ceiba branches'],
-  'Moroccan medina':          ['the smell of cumin and saffron drifting from a nearby stall', 'cool painted tile under bare feet', 'the low beat of a darbuka drum'],
-  'Australian outback':       ['fine red sand between your toes', 'a kookaburra laughing somewhere close', 'the sky turning deep orange near the rocks'],
-  'Brazilian ocean coast':    ['warm wet sand pressing up between your toes', 'the fresh smell of green coconut water', 'waves shushing the shore again and again'],
-  'Chinese mountain village': ['woodsmoke curling up past the rooftops', 'osmanthus blossoms with their apricot smell', 'thick white mist filling the valley below'],
-  'Enchanted forest':         ['tiny mushrooms that glow faintly in the dark', 'a low hum in the air like something breathing', 'leaves chiming softly when the breeze passes'],
-  'Underwater kingdom':       ['bubbles tickling the tip of your nose', 'sea grass swaying back and forth like slow hands', 'rippled light making blue-green patterns on everything'],
-  'Snowy Arctic tundra':      ['your breath turning to a little white cloud', 'fresh snow squeaking under each step', 'silence so wide you can hear your own heartbeat'],
-  'Busy city':                ['the smell of warm bread drifting from a bakery window', 'pigeons cooing softly on a ledge above', 'street lights blinking on one by one as the sky darkens'],
-  'Floating sky islands':     ['clouds soft as rolled dough beneath your feet', 'wind that smells of rain and wildflowers at once', 'small birds glowing gold like paper lanterns'],
-}
-
-// Injected per request to vary vocabulary and push away from clichéd imagery.
-const SENSORY_SEEDS = [
-  'velvety', 'crinkly', 'bubbly', 'feather-soft', 'warm-bread-smell',
-  'puddle-cool', 'mossy', 'honeyed', 'rumbling', 'glimmery',
-  'squeaky', 'fizzy', 'dusty-warm', 'dewy', 'pillowy',
-]
-
-function buildUserPrompt(characters, settings) {
-  const sanitize = (str) => String(str || '').replace(/<[^>]*>/g, '').trim()
-
-  const characterLines = characters.map((c) => {
+// Build a compact character description string, e.g. "Finn the red tractor, Mia the curious fox".
+// The `appearance` field (optional, freeform) is used as the color/descriptor between name and type.
+function buildCharDesc(characters) {
+  return characters.map((c) => {
     const name = sanitize(c.name)
-    const trait = sanitize(c.trait).toLowerCase()
-    const appearance = sanitize(c.appearance)
     const subtype = sanitize(c.subtype)
     const type = sanitize(c.type)
-    const description = subtype ? `${subtype} (${type.toLowerCase()})` : type.toLowerCase()
-    const appearancePart = appearance ? ` with ${appearance}` : ''
-    return `- ${name} is a ${trait} ${description}${appearancePart}.`
-  })
+    const appearance = sanitize(c.appearance)
+    const typePart = (subtype || type).toLowerCase()
+    return appearance
+      ? `${name} the ${appearance} ${typePart}`
+      : `${name} the ${typePart}`
+  }).join(', ')
+}
 
-  const wordCount = settings.length === 'quick' ? '80-100 words'
-    : settings.length === 'short' ? '250-300 words'
-    : '450-500 words'
+function buildSystemPrompt({
+  wordCount, storyLength, activeTheme, charDesc,
+  specialDetails, avoidNames, avoidLocations, continuationContext,
+}) {
+  return `You are a warm, soothing bedtime story teller for toddlers aged 2–4.
 
-  const settingKey = sanitize(settings.setting)
-  const culturalDetails = SETTING_DETAILS[settingKey] || []
-  const culturalHint = culturalDetails.length > 0
-    ? `Ground the story in this setting by naturally including at least one of these specific details: ${culturalDetails.join('; ')}.`
-    : `Reflect the culture, landscape, food, and environment of "${settingKey}" naturally in the details.`
+STORY REQUIREMENTS:
+- Target: ~${wordCount} words (${storyLength}-minute read)
+- Theme: ${activeTheme}
+- Main characters: ${charDesc}
+${specialDetails ? `- Special elements to weave in: ${specialDetails}\n` : ''}- End the story with characters feeling peaceful, sleepy, or settled
+- Simple, gentle language; soft rhythmic prose; no scary moments
+- 3–5 short paragraphs
 
-  const seed = SENSORY_SEEDS[Math.floor(Math.random() * SENSORY_SEEDS.length)]
+GLOBAL DIVERSITY (critical):
+- Set the story in a specific, real place — a named village, market, landscape, or neighborhood
+- Actively choose LESS commonly used settings. Avoid well-worn "diverse" defaults.
+- AVOID these recently used locations: ${avoidLocations || 'none yet'}
+- Draw from underrepresented regions: Central Asia, the Caucasus, Polynesia, the Baltic states, Central Africa, the Andes, the Arctic, Southeast Europe, the Caribbean, Appalachia, the Scottish Highlands, etc.
+- Weave in cultural details (foods, greetings, clothing, music) lightly and warmly
+- Supporting characters should have globally diverse names
+- AVOID these recently used character names: ${avoidNames || 'none yet'}
 
-  return `Write a bedtime story with these characters:
-
-${characterLines.join('\n')}
-
-The story takes place in: ${settingKey}.
-The story is about: ${sanitize(settings.theme)}.
-Total length: approximately ${wordCount} across all paragraphs.
-
-Make sure every character listed appears in the story and plays a meaningful role.
-${culturalHint}
-Somewhere in the story, use a detail that evokes the feeling of something "${seed}" — weave it in naturally.
-End the story gently so the child listening feels sleepy and safe.`
+LANGUAGE & IMAGERY:
+- Vary descriptive language from story to story — avoid overused phrases
+- NEVER use: "painted the sky", "painted the clouds", "the sun painted", "danced in the breeze", "twinkling stars", "soft golden light", "nestled in the", or "drifted off to sleep"
+- Find fresh, specific, childlike ways to describe light, color, and nighttime
+${continuationContext ? `\n${continuationContext}\n` : ''}
+FORMAT (strict — follow exactly):
+Line 1: Story title only (no prefix, no quotes, no markdown)
+Line 2: Location (just the country or region name, nothing else)
+Line 3: blank
+Lines 4+: story paragraphs separated by blank lines
+No headers, bullets, or bold text inside the story.`
 }
 
 function parseStoryResponse(text) {
-  const titleMatch = text.match(/TITLE:\s*(.+)/i)
-  const storyMatch = text.match(/STORY:\s*([\s\S]+)/i)
-
-  const title = titleMatch ? titleMatch[1].trim() : 'A Bedtime Story'
-  const rawStory = storyMatch ? storyMatch[1].trim() : text.trim()
-
-  const pages = rawStory
+  const lines = text.split('\n')
+  const title = lines[0]?.trim() || 'A Bedtime Story'
+  const location = lines[1]?.trim() || ''
+  const body = lines.slice(2).join('\n').trim()
+  const pages = body
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0)
-
-  return { title, pages }
+  return { title, location, pages }
 }
 
 // ── Routes ──────────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => res.json({ ok: true }))
 
 app.post('/api/story', limiter, async (req, res) => {
-  const { characters, settings } = req.body
+  const {
+    characters, settings,
+    avoidNames, avoidLocations,
+    specialDetails, continuationContext,
+  } = req.body
 
   // Validation
   if (!Array.isArray(characters) || characters.length === 0) {
@@ -165,23 +129,36 @@ app.post('/api/story', limiter, async (req, res) => {
     return res.status(503).json({ error: 'Story service is not configured. Please set ANTHROPIC_API_KEY.' })
   }
 
+  const wordCountMap  = { quick: 150, short: 300, medium: 450 }
+  const storyLengthMap = { quick: '1', short: '2', medium: '3' }
+  const maxTokensMap  = { quick: 400, short: 800, medium: 1200 }
+
+  const charDesc = buildCharDesc(characters)
+  const systemPrompt = buildSystemPrompt({
+    wordCount: wordCountMap[settings.length],
+    storyLength: storyLengthMap[settings.length],
+    activeTheme: sanitize(settings.theme),
+    charDesc,
+    specialDetails: sanitize(specialDetails),
+    avoidNames: sanitize(avoidNames),
+    avoidLocations: sanitize(avoidLocations),
+    continuationContext: sanitize(continuationContext),
+  })
+
   try {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-    const maxTokens = settings.length === 'quick' ? 400
-      : settings.length === 'short' ? 800
-      : 1200
 
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: maxTokens,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: buildUserPrompt(characters, settings) }],
+      max_tokens: maxTokensMap[settings.length],
+      system: systemPrompt,
+      messages: [{ role: 'user', content: 'Write the story now.' }],
     })
 
     const rawText = message.content[0].text
-    const { title, pages } = parseStoryResponse(rawText)
+    const { title, location, pages } = parseStoryResponse(rawText)
 
-    res.json({ title, pages })
+    res.json({ title, location, pages })
   } catch (err) {
     console.error('Claude API error:', err)
     if (err.status === 401) {

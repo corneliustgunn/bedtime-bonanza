@@ -52,6 +52,27 @@ const DEFAULT_SETTINGS = {
   length: 'short',
 }
 
+// ── Avoid-list tracking (7-day expiry, stored in localStorage) ──────────────
+const TRACK_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
+const MAX_AVOID_NAMES = 40
+const MAX_AVOID_LOCS  = 20
+
+function loadTracked(key) {
+  try {
+    const raw = localStorage.getItem(key)
+    if (!raw) return []
+    const list = JSON.parse(raw)
+    const cutoff = Date.now() - TRACK_WINDOW_MS
+    return list.filter((e) => e.ts > cutoff)
+  } catch {
+    return []
+  }
+}
+
+function saveTracked(key, list) {
+  try { localStorage.setItem(key, JSON.stringify(list)) } catch { /* ignore */ }
+}
+
 export default function BuildPage() {
   const [characters, setCharacters] = useState([])
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
@@ -82,11 +103,17 @@ export default function BuildPage() {
     setError('')
     setLoading(true)
     try {
+      // Load and filter tracked avoid-lists from localStorage
+      const trackedNames = loadTracked('avoidNames')
+      const trackedLocs  = loadTracked('avoidLocs')
+      const avoidNames     = trackedNames.map((e) => e.value).join(', ')
+      const avoidLocations = trackedLocs.map((e) => e.value).join(', ')
+
       const apiBase = import.meta.env.VITE_API_URL ?? ''
       const res = await fetch(`${apiBase}/api/story`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ characters, settings }),
+        body: JSON.stringify({ characters, settings, avoidNames, avoidLocations }),
       })
       if (!res.ok) {
         let message = 'Something went wrong. Please try again.'
@@ -98,6 +125,19 @@ export default function BuildPage() {
         return
       }
       const data = await res.json()
+
+      // Append used character names to avoid-list (capped at MAX_AVOID_NAMES)
+      const now = Date.now()
+      const newNames = characters.map((c) => ({ value: c.name, ts: now }))
+      const updatedNames = [...trackedNames, ...newNames].slice(-MAX_AVOID_NAMES)
+      saveTracked('avoidNames', updatedNames)
+
+      // Append returned location to avoid-list (capped at MAX_AVOID_LOCS)
+      if (data.location) {
+        const updatedLocs = [...trackedLocs, { value: data.location, ts: now }].slice(-MAX_AVOID_LOCS)
+        saveTracked('avoidLocs', updatedLocs)
+      }
+
       navigate('/story', { state: { story: data } })
     } catch {
       setError('Could not reach the story server. Please check your connection.')
@@ -165,8 +205,8 @@ export default function BuildPage() {
                 <div className={styles.lengthToggle}>
                   {[
                     { value: 'quick',  label: '1 min', sub: 'Tiny tale'   },
-                    { value: 'short',  label: '3 min', sub: 'Short story' },
-                    { value: 'medium', label: '5 min', sub: 'Full story'  },
+                    { value: 'short',  label: '2 min', sub: 'Short story' },
+                    { value: 'medium', label: '3 min', sub: 'Full story'  },
                   ].map((opt) => (
                     <label
                       key={opt.value}

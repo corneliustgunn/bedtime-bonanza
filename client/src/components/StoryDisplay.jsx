@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import styles from './StoryDisplay.module.css'
 
-export default function StoryDisplay({ title, pages }) {
+export default function StoryDisplay({ title, location, pages }) {
   const [currentPage, setCurrentPage] = useState(0)
   const [speaking, setSpeaking] = useState(false)
   const contentRef = useRef(null)
@@ -50,6 +50,11 @@ export default function StoryDisplay({ title, pages }) {
   return (
     <div className={styles.wrapper}>
       <h2 className={styles.title}>{title}</h2>
+      {location && (
+        <p className={styles.location} aria-label={`Set in ${location}`}>
+          <span aria-hidden="true">📍</span> {location}
+        </p>
+      )}
 
       <div className={styles.pageIndicator} aria-label={`Page ${currentPage + 1} of ${total}`}>
         {pages.map((_, i) => (
