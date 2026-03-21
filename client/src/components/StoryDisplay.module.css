@@ -15,6 +15,14 @@
   font-family: var(--font-heading);
 }
 
+.location {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  letter-spacing: 0.03em;
+  margin-top: -0.5rem;
+}
+
 .pageIndicator {
   display: flex;
   gap: 0.5rem;
