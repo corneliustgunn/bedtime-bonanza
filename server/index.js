@@ -127,6 +127,7 @@ ${characterBlock}
 
 WORLD / SETTING:
   ${settingInstruction}
+  - IMPORTANT: Do NOT open the story by stating or announcing the setting. Reveal the place through sensory details woven naturally into the narrative. Never write a sentence like "Our story takes place in…" or "In a village called…" as an opening.
 ${locationAvoidLine}
 THEME & LESSON — ${themeLabel}:
   Story hook: ${storySeed}
@@ -201,10 +202,10 @@ app.post('/api/story', limiter, async (req, res) => {
     return res.status(503).json({ error: 'Story service is not configured. Please set ANTHROPIC_API_KEY.' })
   }
 
-  const wordCountMap     = { quick: 150, short: 300, medium: 450 }
+  const wordCountMap      = { quick: 150, short: 300, medium: 500 }
   const paragraphCountMap = { quick: 3,   short: 4,   medium: 5   }
-  const storyLengthMap   = { quick: '1', short: '2', medium: '3' }
-  const maxTokensMap     = { quick: 450, short: 900,  medium: 1300 }
+  const storyLengthMap    = { quick: '1', short: '3', medium: '5' }
+  const maxTokensMap      = { quick: 450, short: 900,  medium: 1400 }
 
   const themeRaw   = sanitize(settings.theme)
   const themeLabel = themeRaw
