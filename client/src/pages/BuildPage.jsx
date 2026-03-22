@@ -205,8 +205,8 @@ export default function BuildPage() {
                 <div className={styles.lengthToggle}>
                   {[
                     { value: 'quick',  label: '1 min', sub: 'Tiny tale'   },
-                    { value: 'short',  label: '2 min', sub: 'Short story' },
-                    { value: 'medium', label: '3 min', sub: 'Full story'  },
+                    { value: 'short',  label: '3 min', sub: 'Short story' },
+                    { value: 'medium', label: '5 min', sub: 'Full story'  },
                   ].map((opt) => (
                     <label
                       key={opt.value}
