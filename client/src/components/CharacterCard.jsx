@@ -3,11 +3,9 @@ import styles from './CharacterCard.module.css'
 const TYPE_EMOJI = {
   Human: '👧',
   Animal: '🐾',
+  Truck: '🚛',
   'Fantasy Creature': '🦄',
-  Robot: '🤖',
-  Fairy: '🧚',
-  Dragon: '🐲',
-  'Talking Object': '🪄',
+  Other: '✨',
 }
 
 export default function CharacterCard({ character, onRemove }) {
