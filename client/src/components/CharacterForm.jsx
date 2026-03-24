@@ -1,15 +1,14 @@
 import { useState } from 'react'
 import styles from './CharacterForm.module.css'
 
-const CHARACTER_TYPES = ['Human', 'Animal', 'Fantasy Creature', 'Robot', 'Fairy', 'Dragon', 'Talking Object']
+const CHARACTER_TYPES = ['Human', 'Animal', 'Truck', 'Fantasy Creature', 'Other']
 const TRAITS = ['Brave', 'Curious', 'Kind', 'Funny', 'Shy', 'Adventurous', 'Gentle', 'Playful']
 
 const SUBTYPE_PLACEHOLDER = {
   Animal: 'e.g. bunny, elephant, fox',
+  Truck: 'e.g. fire truck, dump truck, tractor',
   'Fantasy Creature': 'e.g. unicorn, phoenix, sprite',
-  'Talking Object': 'e.g. teapot, lantern, book',
-  Fairy: 'e.g. flower fairy, moon fairy',
-  Dragon: 'e.g. little fire dragon, cloud dragon',
+  Other: 'e.g. teapot, magic carpet, kite',
 }
 
 const RANDOM_NAMES = [
@@ -20,10 +19,9 @@ const RANDOM_NAMES = [
 
 const RANDOM_SUBTYPES = {
   Animal: ['bunny', 'elephant', 'fox', 'owl', 'bear cub', 'penguin', 'turtle', 'hedgehog', 'deer', 'otter'],
+  Truck: ['fire truck', 'dump truck', 'tractor', 'ice cream truck', 'mail truck', 'recycling truck'],
   'Fantasy Creature': ['unicorn', 'phoenix', 'sprite', 'gnome', 'griffin', 'cloud spirit', 'sea serpent'],
-  'Talking Object': ['teapot', 'lantern', 'book', 'umbrella', 'music box', 'compass', 'mirror'],
-  Fairy: ['flower fairy', 'moon fairy', 'rain fairy', 'forest fairy', 'star fairy'],
-  Dragon: ['little fire dragon', 'cloud dragon', 'tiny ice dragon', 'rainbow dragon'],
+  Other: ['teapot', 'lantern', 'magic carpet', 'umbrella', 'music box', 'compass', 'little boat', 'kite'],
 }
 
 const RANDOM_APPEARANCES = [
@@ -42,7 +40,7 @@ export default function CharacterForm({ onAdd, onCancel, showCancel }) {
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
-  const needsSubtype = ['Animal', 'Fantasy Creature', 'Talking Object', 'Fairy', 'Dragon'].includes(form.type)
+  const needsSubtype = ['Animal', 'Truck', 'Fantasy Creature', 'Other'].includes(form.type)
 
   function randomize() {
     const type = pickRandom(CHARACTER_TYPES)
@@ -102,7 +100,7 @@ export default function CharacterForm({ onAdd, onCancel, showCancel }) {
       {needsSubtype && (
         <div className="form-group">
           <label className="form-label" htmlFor="char-subtype">
-            {form.type === 'Talking Object' ? 'What object?' : `What kind of ${form.type.toLowerCase()}?`}
+            {form.type === 'Other' ? 'What is it?' : `What kind of ${form.type.toLowerCase()}?`}
           </label>
           <input
             id="char-subtype"

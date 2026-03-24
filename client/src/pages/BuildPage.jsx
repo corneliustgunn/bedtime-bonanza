@@ -20,6 +20,11 @@ const SETTINGS = [
   'Snowy Arctic tundra',
   'Busy city',
   'Floating sky islands',
+  'Scottish Highlands',
+  'Saharan oasis',
+  'Pacific island village',
+  'Himalayan village',
+  'Caribbean coast',
 ]
 
 const THEMES = [
