@@ -154,7 +154,8 @@ FORMAT — follow exactly, no exceptions:
   Line 2: Location (country name, region name, or fantastical realm name — nothing else)
   Line 3: blank
   Lines 4+: story paragraphs, each separated by exactly one blank line
-  No headers, labels, bullets, or bold text inside the story body.`
+  No headers, labels, bullets, or bold text inside the story body.
+  The location appears ONLY on line 2. Do not repeat or restate it anywhere in the story paragraphs.`
 }
 
 function parseStoryResponse(text) {
@@ -166,6 +167,15 @@ function parseStoryResponse(text) {
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter((p) => p.length > 0)
+    .filter((p) => {
+      // Drop any paragraph that is just the location repeated (Claude sometimes
+      // outputs it as a standalone line in the body despite the format instruction)
+      if (location && p.toLowerCase() === location.toLowerCase()) return false
+      // Drop very short paragraphs with no sentence-ending punctuation —
+      // these are stray labels, not story content
+      if (p.length < 40 && !/[.!?]/.test(p)) return false
+      return true
+    })
   return { title, location, pages }
 }
 
