@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import styles from './CharacterForm.module.css'
+import { CHARACTER_TYPES as CHARACTER_TYPE_CONFIG } from './characterTypes.js'
 
-const CHARACTER_TYPES = ['Human', 'Animal', 'Truck', 'Fantasy Creature', 'Other']
+const CHARACTER_TYPES = CHARACTER_TYPE_CONFIG.map((t) => t.type)
 const TRAITS = ['Brave', 'Curious', 'Kind', 'Funny', 'Shy', 'Adventurous', 'Gentle', 'Playful']
 
 const SUBTYPE_PLACEHOLDER = {
@@ -40,7 +41,7 @@ export default function CharacterForm({ onAdd, onCancel, showCancel }) {
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
-  const needsSubtype = ['Animal', 'Truck', 'Fantasy Creature', 'Other'].includes(form.type)
+  const needsSubtype = form.type in SUBTYPE_PLACEHOLDER
 
   function randomize() {
     const type = pickRandom(CHARACTER_TYPES)
