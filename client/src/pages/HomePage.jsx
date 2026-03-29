@@ -7,6 +7,7 @@ const FEATURES = [
   { emoji: '🌍', label: 'Diverse worlds', desc: 'Stories set across cultures and landscapes' },
   { emoji: '🌙', label: 'Age-appropriate', desc: 'Gentle language for children aged 2–5' },
   { emoji: '🔊', label: 'Read aloud', desc: 'Tap a button and let the app narrate' },
+  { emoji: '🗺️', label: 'Story Atlas', desc: 'Watch your adventures fill a world map', to: '/atlas' },
 ]
 
 export default function HomePage() {
@@ -29,15 +30,26 @@ export default function HomePage() {
           </Link>
 
           <div className={styles.features}>
-            {FEATURES.map((f) => (
-              <div key={f.label} className={styles.feature}>
-                <span className={styles.featureEmoji} aria-hidden="true">{f.emoji}</span>
-                <div>
-                  <strong className={styles.featureLabel}>{f.label}</strong>
-                  <span className={styles.featureDesc}> — {f.desc}</span>
+            {FEATURES.map((f) => {
+              const inner = (
+                <>
+                  <span className={styles.featureEmoji} aria-hidden="true">{f.emoji}</span>
+                  <div>
+                    <strong className={styles.featureLabel}>{f.label}</strong>
+                    <span className={styles.featureDesc}> — {f.desc}</span>
+                  </div>
+                </>
+              )
+              return f.to ? (
+                <Link key={f.label} to={f.to} className={styles.feature}>
+                  {inner}
+                </Link>
+              ) : (
+                <div key={f.label} className={styles.feature}>
+                  {inner}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </main>
       </div>
