@@ -29,9 +29,15 @@ const limiter = rateLimit({
   message: { error: 'Too many story requests. Please wait a few minutes and try again.' },
 })
 
+const anthropicClient = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || '' })
+
 // ── Prompt data ─────────────────────────────────────────────────────────────
 
-// Settings the UI treats as fantastical (no real-world location line)
+const WORD_COUNT_MAP      = { quick: 150, short: 300, medium: 500 }
+const PARAGRAPH_COUNT_MAP = { quick: 3,   short: 4,   medium: 5   }
+const STORY_LENGTH_MAP    = { quick: '1', short: '3', medium: '5' }
+const MAX_TOKENS_MAP      = { quick: 450, short: 900,  medium: 1400 }
+
 const FANTASY_SETTINGS = new Set(['Enchanted forest', 'Underwater kingdom', 'Floating sky islands'])
 
 // Per-theme story seed: gives Claude a concrete plot hook rather than just a word.
@@ -166,13 +172,11 @@ function parseStoryResponse(text) {
   const pages    = body
     .split(/\n\s*\n/)
     .map((p) => p.trim())
-    .filter((p) => p.length > 0)
     .filter((p) => {
-      // Drop any paragraph that is just the location repeated (Claude sometimes
-      // outputs it as a standalone line in the body despite the format instruction)
+      if (p.length === 0) return false
+      // Drop the location if Claude repeated it as a standalone paragraph
       if (location && p.toLowerCase() === location.toLowerCase()) return false
-      // Drop very short paragraphs with no sentence-ending punctuation —
-      // these are stray labels, not story content
+      // Drop stray label fragments (too short, no sentence-ending punctuation)
       if (p.length < 40 && !/[.!?]/.test(p)) return false
       return true
     })
@@ -212,11 +216,6 @@ app.post('/api/story', limiter, async (req, res) => {
     return res.status(503).json({ error: 'Story service is not configured. Please set ANTHROPIC_API_KEY.' })
   }
 
-  const wordCountMap      = { quick: 150, short: 300, medium: 500 }
-  const paragraphCountMap = { quick: 3,   short: 4,   medium: 5   }
-  const storyLengthMap    = { quick: '1', short: '3', medium: '5' }
-  const maxTokensMap      = { quick: 450, short: 900,  medium: 1400 }
-
   const themeRaw   = sanitize(settings.theme)
   const themeLabel = themeRaw
     .split('-')
@@ -227,16 +226,16 @@ app.post('/api/story', limiter, async (req, res) => {
   const settingLabel = sanitize(settings.setting)
   const isFantasy    = FANTASY_SETTINGS.has(settingLabel)
 
-  // specialDetails is not yet in the UI; it wires through when a future field adds it
+  const sanitizedSpecial = sanitize(specialDetails)
   const contCtx = [
-    sanitize(specialDetails) ? `Special elements to weave in: ${sanitize(specialDetails)}` : '',
+    sanitizedSpecial ? `Special elements to weave in: ${sanitizedSpecial}` : '',
     sanitize(continuationContext),
   ].filter(Boolean).join('\n')
 
   const systemPrompt = buildSystemPrompt({
-    wordCount:      wordCountMap[settings.length],
-    paragraphCount: paragraphCountMap[settings.length],
-    storyLength:    storyLengthMap[settings.length],
+    wordCount:      WORD_COUNT_MAP[settings.length],
+    paragraphCount: PARAGRAPH_COUNT_MAP[settings.length],
+    storyLength:    STORY_LENGTH_MAP[settings.length],
     themeLabel,
     storySeed,
     characterBlock: buildCharacterBlock(characters),
@@ -248,11 +247,9 @@ app.post('/api/story', limiter, async (req, res) => {
   })
 
   try {
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-
-    const message = await client.messages.create({
+    const message = await anthropicClient.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: maxTokensMap[settings.length],
+      max_tokens: MAX_TOKENS_MAP[settings.length],
       system: systemPrompt,
       messages: [{ role: 'user', content: 'Write the story now.' }],
     })

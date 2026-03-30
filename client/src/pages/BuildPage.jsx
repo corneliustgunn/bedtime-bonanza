@@ -143,6 +143,21 @@ export default function BuildPage() {
         saveTracked('avoidLocs', updatedLocs)
       }
 
+      // Save entry to story atlas
+      try {
+        const atlas = JSON.parse(localStorage.getItem('storyAtlas') || '[]')
+        atlas.push({
+          id: crypto.randomUUID(),
+          ts: now,
+          title: data.title,
+          location: data.location,
+          characters: characters.map(({ name, type, subtype, trait, appearance }) =>
+            ({ name, type, subtype, trait, appearance })
+          ),
+        })
+        localStorage.setItem('storyAtlas', JSON.stringify(atlas.slice(-200)))
+      } catch { /* ignore */ }
+
       navigate('/story', { state: { story: data } })
     } catch {
       setError('Could not reach the story server. Please check your connection.')

@@ -29,6 +29,9 @@ export default function StoryPage() {
             <Link to="/build" className="btn btn-secondary">
               Build another story
             </Link>
+            <Link to="/atlas" className="btn btn-ghost">
+              🗺️ Story Atlas
+            </Link>
             <Link to="/" className="btn btn-ghost">
               Home
             </Link>

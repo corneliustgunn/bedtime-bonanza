@@ -1,12 +1,7 @@
 import styles from './CharacterCard.module.css'
+import { CHARACTER_TYPES } from './characterTypes.js'
 
-const TYPE_EMOJI = {
-  Human: '👧',
-  Animal: '🐾',
-  Truck: '🚛',
-  'Fantasy Creature': '🦄',
-  Other: '✨',
-}
+const TYPE_EMOJI = Object.fromEntries(CHARACTER_TYPES.map((t) => [t.type, t.emoji]))
 
 export default function CharacterCard({ character, onRemove }) {
   const emoji = TYPE_EMOJI[character.type] || '⭐'
