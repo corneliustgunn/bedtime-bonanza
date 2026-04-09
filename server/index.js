@@ -67,25 +67,25 @@ const THEME_STORY_SEED = {
 }
 
 // Narrative arc templates keyed by paragraph count.
-// Each entry describes exactly what each paragraph must accomplish.
+// Evocative beat guidance — describes the emotional shape of each paragraph, not a script.
 const STORY_ARC = {
   3: `\
-  Paragraph 1 — OPEN: Introduce the characters in their world. One warm, specific sensory image sets the scene.
-  Paragraph 2 — HEART: A small moment happens that embodies the theme. Characters act; the lesson shows in what they do, not in what they say.
-  Paragraph 3 — CLOSE: The world grows quiet. End with one sentence that names the feeling the character carries — not the lesson itself.`,
+  Paragraph 1: Ground us in the world with the characters present. Let one sensory detail carry the whole scene — something they can hear, smell, or feel.
+  Paragraph 2: Something small happens that puts the theme in motion. The characters respond through what they do, not what they say.
+  Paragraph 3: The world settles. Close with two or three gentle sentences that wind the story down and end on the feeling the character is left with — not a stated lesson.`,
 
   4: `\
-  Paragraph 1 — OPEN: Introduce the characters in their world. One warm, specific sensory image sets the scene.
-  Paragraph 2 — SPARK: A small, gentle challenge or moment of choice appears — connected naturally to the theme. No villains, no fear.
-  Paragraph 3 — TURN: Characters respond. The theme plays out in a concrete action or decision. The challenge resolves.
-  Paragraph 4 — CLOSE: The world grows quiet. End with one sentence that names the feeling the character carries — not the lesson itself.`,
+  Paragraph 1: Ground us in the world with the characters present. Let one sensory detail carry the whole scene.
+  Paragraph 2: A small, gentle moment of choice or discovery appears — nothing scary, nothing loud. It connects naturally to the theme.
+  Paragraph 3: The characters move through it. The theme shows in a concrete action or decision; the moment resolves with a quiet sense of rightness.
+  Paragraph 4: The world settles. Close with two or three gentle sentences that wind the story down and end on the feeling the character is left with — not a stated lesson.`,
 
   5: `\
-  Paragraph 1 — OPEN: Introduce the characters in their world. One warm, specific sensory image sets the scene.
-  Paragraph 2 — SPARK: A small, gentle challenge or moment of choice appears — connected naturally to the theme. No villains, no fear.
-  Paragraph 3 — HEART: Characters explore or try things. Show each character's personality through what they do, not just what they say.
-  Paragraph 4 — TURN: The theme plays out in a concrete action or decision. The challenge resolves in a way that feels earned.
-  Paragraph 5 — CLOSE: The world grows quiet. End with one sentence that names the feeling the character carries — not the lesson itself.`,
+  Paragraph 1: Ground us in the world with the characters present. Let one sensory detail carry the whole scene.
+  Paragraph 2: A small, gentle moment of choice or discovery appears — nothing scary, nothing loud. It connects naturally to the theme.
+  Paragraph 3: The characters explore or try things. Each character's personality comes through in what they do; let the story breathe here.
+  Paragraph 4: Something shifts. The theme lands in a concrete action or decision that feels earned — not announced.
+  Paragraph 5: The world settles. Close with two or three gentle sentences that wind the story down and end on the feeling the character is left with — not a stated lesson.`,
 }
 
 // ── Prompt builder ──────────────────────────────────────────────────────────
@@ -139,15 +139,15 @@ THEME & LESSON — ${themeLabel}:
   Story hook: ${storySeed}
   - Build the plot around this hook. It is the engine of the story.
   - Show the theme through a concrete moment or action — never state it directly (not: "this was kindness").
-  - The CLOSE paragraph must end with one quiet sentence that names the FEELING, not the lesson.
-    Good: "She felt warm all the way to her toes."
+  - The CLOSE paragraph should wind down gently over two or three sentences and end on the feeling the character carries — not a stated lesson.
+    Good: "The sky had gone soft and orange. Mia leaned against Biscuit and let out a long, slow breath. She felt warm all the way to her toes."
     Bad: "And that is how Luna learned to share."
 
 NARRATIVE STRUCTURE — write exactly ${paragraphCount} paragraphs:
 ${STORY_ARC[paragraphCount]}
 
 LANGUAGE & TONE:
-  - Simple words; short sentences (max ~12 words each); calm, rhythmic, read-aloud flow
+  - Simple words; sentences that feel natural aloud (aim for ~10–15 words; vary the rhythm)
   - No scary villains, no violence, no fear — gentle challenges only
   - Specific, sensory detail over generic description (what does it smell like? sound like? feel like?)
   - NEVER use: "painted the sky", "painted the clouds", "the sun painted", "danced in the breeze",
