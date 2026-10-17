@@ -13,7 +13,7 @@ bedtime-bonanza/
 ├── server/          Express API (Node.js, ESM)
 ├── client/          React + Vite SPA
 ├── package.json     Root — workspaces, shared scripts
-├── render.yaml      Render.com backend deployment config
+├── railway.json     Railway backend deployment config
 └── .github/
     └── workflows/
         └── deploy.yml   GitHub Actions → GitHub Pages
@@ -91,7 +91,7 @@ Single-file Express server (ESM, `"type": "module"`).
 |---|---|
 | `ANTHROPIC_API_KEY` | Required. Claude API key. |
 | `PORT` | Optional. Defaults to 3001. |
-| `NODE_ENV` | Set to `production` on Render. |
+| `NODE_ENV` | Set to `production` on Railway. |
 | `CORS_ORIGIN` | Allowed origin in production (set to `https://corneliustgunn.github.io`). |
 
 ---
@@ -105,7 +105,7 @@ React 18 + Vite 6, `"type": "module"`. All routing uses **`createHashRouter`** (
 **Client env vars (baked in at build time):**
 | Var | Purpose |
 |---|---|
-| `VITE_API_URL` | Backend URL prefix. Empty in dev (proxy handles it). Set to the Render URL in production via GitHub Actions secret. |
+| `VITE_API_URL` | Backend URL prefix. Empty in dev (proxy handles it). Set to the Railway URL in production via GitHub Actions secret. |
 
 ### Pages
 
@@ -185,14 +185,16 @@ Automated via `.github/workflows/deploy.yml`:
 - Deploys `client/dist/` to the `gh-pages` branch via `peaceiris/actions-gh-pages`
 - Live URL: `https://corneliustgunn.github.io/bedtime-bonanza/`
 
-### Render.com (backend)
+### Railway (backend)
 
-Configured via `render.yaml` at the repo root:
-- Build: `npm install` (workspaces installs everything)
+Configured via `railway.json` at the repo root:
+- Builder: Nixpacks
+- Build: `npm install` (workspaces installs everything; set explicitly so the client is not rebuilt — the frontend lives on GitHub Pages)
 - Start: `node server/index.js`
-- Env vars: `NODE_ENV=production`, `CORS_ORIGIN=https://corneliustgunn.github.io`, `ANTHROPIC_API_KEY` (set manually in Render dashboard — `sync: false`)
+- Health check: `/api/health` (Railway marks a deploy live only once the app responds)
+- Env vars (set manually in the Railway dashboard → service → Variables): `NODE_ENV=production`, `CORS_ORIGIN=https://corneliustgunn.github.io`, `ANTHROPIC_API_KEY`. Do NOT set `PORT` — Railway injects it automatically and the server reads `process.env.PORT`.
 
-After changes that need to be live: merge to `main` → GitHub Actions deploys frontend automatically; Render auto-deploys backend on push to `main` (if connected).
+After changes that need to be live: merge to `main` → GitHub Actions deploys frontend automatically; Railway auto-deploys backend on push to `main` (if the repo is connected).
 
 ---
 
