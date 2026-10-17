@@ -23,7 +23,12 @@ export default function StoryPage() {
         <Header />
 
         <main className={styles.main}>
-          <StoryDisplay title={story.title} location={story.location} pages={story.pages} />
+          <StoryDisplay
+            title={story.title}
+            location={story.location}
+            pages={story.pages}
+            refrain={story.refrain}
+          />
 
           <div className={styles.actions}>
             <Link to="/build" className="btn btn-secondary">

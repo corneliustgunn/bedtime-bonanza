@@ -97,6 +97,38 @@
   transform: rotate(20deg) scale(1.2);
 }
 
+.styleGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.styleEmoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.todayGroup {
+  margin-top: 1.25rem;
+}
+
+.todayInput {
+  resize: vertical;
+  min-height: 48px;
+  font-family: var(--font-body);
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.charCount {
+  align-self: flex-end;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
 @media (min-width: 480px) {
   .settingsGrid {
     display: grid;

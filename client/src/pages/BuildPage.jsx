@@ -51,11 +51,22 @@ const THEMES = [
   { value: 'learning',     label: '📚 Learning'       },
 ]
 
+const STYLES = [
+  { value: 'cozy',    emoji: '🌙', label: 'Cozy',    sub: 'Calm wind-down'   },
+  { value: 'refrain', emoji: '🔁', label: 'Refrain', sub: 'Say-along line'   },
+  { value: 'rhyme',   emoji: '🎶', label: 'Rhyming', sub: 'Sing-song verse'  },
+  { value: 'silly',   emoji: '🤪', label: 'Silly',   sub: 'Giggles & BOINGs' },
+]
+
 const DEFAULT_SETTINGS = {
   setting: 'Enchanted forest',
   theme: 'friendship',
   length: 'short',
+  style: 'cozy',
 }
+
+const MAX_SPECIAL_DETAILS = 200
+const RECENT_STORY_COUNT  = 5
 
 // ── Avoid-list tracking (7-day expiry, stored in localStorage) ──────────────
 const TRACK_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
@@ -81,6 +92,7 @@ function saveTracked(key, list) {
 export default function BuildPage() {
   const [characters, setCharacters] = useState([])
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
+  const [specialDetails, setSpecialDetails] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
@@ -92,6 +104,11 @@ export default function BuildPage() {
   function pickRandomSetting() {
     const random = SETTINGS[Math.floor(Math.random() * SETTINGS.length)]
     setSettings((s) => ({ ...s, setting: random }))
+  }
+
+  function pickRandomStyle() {
+    const random = STYLES[Math.floor(Math.random() * STYLES.length)]
+    setSettings((s) => ({ ...s, style: random.value }))
   }
 
   function pickRandomTheme() {
@@ -114,11 +131,27 @@ export default function BuildPage() {
       const avoidNames     = trackedNames.map((e) => e.value).join(', ')
       const avoidLocations = trackedLocs.map((e) => e.value).join(', ')
 
+      // Recent stories so the server can steer away from repeated openings and plots
+      let recentStories = []
+      try {
+        const atlas = JSON.parse(localStorage.getItem('storyAtlas') || '[]')
+        recentStories = atlas
+          .slice(-RECENT_STORY_COUNT)
+          .map(({ title, firstLine }) => ({ title, firstLine: firstLine || '' }))
+      } catch { /* ignore */ }
+
       const apiBase = import.meta.env.VITE_API_URL ?? ''
       const res = await fetch(`${apiBase}/api/story`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ characters, settings, avoidNames, avoidLocations }),
+        body: JSON.stringify({
+          characters,
+          settings,
+          avoidNames,
+          avoidLocations,
+          specialDetails: specialDetails.trim(),
+          recentStories,
+        }),
       })
       if (!res.ok) {
         let message = 'Something went wrong. Please try again.'
@@ -151,6 +184,8 @@ export default function BuildPage() {
           ts: now,
           title: data.title,
           location: data.location,
+          style: data.style,
+          firstLine: (data.pages[0] || '').split('\n')[0].slice(0, 120),
           characters: characters.map(({ name, type, subtype, trait, appearance }) =>
             ({ name, type, subtype, trait, appearance })
           ),
@@ -246,6 +281,54 @@ export default function BuildPage() {
                   ))}
                 </div>
               </div>
+            </div>
+          </section>
+
+          {/* ── Story Style ─────────────────────────────── */}
+          <section className="card">
+            <div className={styles.themeLabelRow}>
+              <h2 className="section-heading">
+                <span aria-hidden="true">🎭</span> Story Style
+              </h2>
+              <button type="button" className={styles.randomBtn} onClick={pickRandomStyle} title="Pick a random style">
+                🎲
+              </button>
+            </div>
+            <div className={styles.styleGrid} role="radiogroup" aria-label="Story style">
+              {STYLES.map((opt) => (
+                <label
+                  key={opt.value}
+                  className={`${styles.lengthOption} ${settings.style === opt.value ? styles.lengthActive : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name="style"
+                    value={opt.value}
+                    checked={settings.style === opt.value}
+                    onChange={setSetting('style')}
+                    className={styles.hiddenRadio}
+                  />
+                  <span className={styles.styleEmoji} aria-hidden="true">{opt.emoji}</span>
+                  <span className={styles.lengthLabel}>{opt.label}</span>
+                  <span className={styles.lengthSub}>{opt.sub}</span>
+                </label>
+              ))}
+            </div>
+
+            <div className={`form-group ${styles.todayGroup}`}>
+              <label className="form-label" htmlFor="specialDetails">
+                Something from today <span className={styles.optional}>(optional)</span>
+              </label>
+              <textarea
+                id="specialDetails"
+                className={`form-input ${styles.todayInput}`}
+                rows={2}
+                maxLength={MAX_SPECIAL_DETAILS}
+                placeholder="We saw a big yellow digger at the park"
+                value={specialDetails}
+                onChange={(e) => setSpecialDetails(e.target.value)}
+              />
+              <span className={styles.charCount}>{specialDetails.length}/{MAX_SPECIAL_DETAILS}</span>
             </div>
           </section>
 

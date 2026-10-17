@@ -122,7 +122,7 @@ React 18 + Vite 6, `"type": "module"`. All routing uses **`createHashRouter`** (
 | Route | File | Purpose |
 |---|---|---|
 | `/#/` | `pages/HomePage.jsx` | Landing page with "Let's build a story" CTA |
-| `/#/build` | `pages/BuildPage.jsx` | Character builder + story settings + generate button |
+| `/#/build` | `pages/BuildPage.jsx` | Character builder + story settings + story style + "Something from today" + generate button |
 | `/#/story` | `pages/StoryPage.jsx` | Displays generated story; receives story via `useLocation().state.story` |
 
 `StoryPage` redirects to `/` if there is no story in router state (direct-link protection).
@@ -135,7 +135,7 @@ React 18 + Vite 6, `"type": "module"`. All routing uses **`createHashRouter`** (
 | `CharacterList.jsx` | Manages array of up to 4 characters; shows cards + add/remove |
 | `CharacterForm.jsx` | Form to add one character. **Important:** rendered as `<div>`, NOT `<form>`, because it lives inside BuildPage's outer `<form>`. The "Add Character" button is `type="button"` with `onClick`. Never wrap this in a `<form>` tag. |
 | `CharacterCard.jsx` | Displays one character pill with emoji, name, description, remove button |
-| `StoryDisplay.jsx` | Paginated story with prev/next navigation, dot indicators, optional Web Speech API read-aloud |
+| `StoryDisplay.jsx` | Paginated story with prev/next navigation, dot indicators, optional Web Speech API read-aloud. Highlights the `refrain` (if any) and preserves `\n` line breaks within a page (verse) |
 | `LoadingSpinner.jsx` | Full-screen overlay shown while Claude generates |
 
 ### Data — SETTINGS and THEMES
