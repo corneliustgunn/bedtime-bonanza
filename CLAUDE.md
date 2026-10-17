@@ -67,24 +67,34 @@ Single-file Express server (ESM, `"type": "module"`).
   settings: {
     setting: string,  // from SETTINGS list in BuildPage.jsx
     theme: string,    // from THEMES list in BuildPage.jsx (value field)
-    length: string    // "quick" | "short" | "medium"
-  }
+    length: string,   // "quick" | "short" | "medium"
+    style: string     // "cozy" | "refrain" | "rhyme" | "silly" (optional; defaults to "cozy")
+  },
+  specialDetails: string,   // optional "Something from today"; max 200 chars after sanitizing
+  recentStories: [          // optional; last ≤5 atlas entries, used to avoid repeating openings/plots
+    { title: string, firstLine: string }
+  ],
+  avoidNames: string,       // comma-separated, from localStorage avoid-list
+  avoidLocations: string    // comma-separated, from localStorage avoid-list
 }
 ```
 
 **Response shape (success):**
 ```js
-{ title: string, pages: string[] }  // pages = Claude text split on \n\n
+{ title: string, location: string, refrain: string, style: string, pages: string[] }
+// refrain is "" unless style === "refrain"; rhyme pages contain \n line breaks between verse lines
 ```
 
 **Error responses:** `{ error: string }` with status 400 (validation), 429 (rate limit), 502 (Claude error), 503 (key not configured).
 
 **Claude integration:**
-- Model: `claude-3-5-haiku-20241022`
-- max_tokens: `quick`→300, `short`→600, `medium`→900
-- Word count targets: `quick`→80-100, `short`→250-300, `medium`→450-500
+- Model: `claude-sonnet-5-5` via `client.beta.messages.create`, `output_config.effort: 'low'`, adaptive thinking (default)
+- Do NOT send `temperature` — Sonnet 5.5 rejects non-default sampling. Variety comes from the prompt: `STYLE_GUIDE` (per-style structure), `pickRecipe()` (random opening / story device / bedtime landing), and the `recentStories` avoid-list.
+- `max_tokens: 4000` for every length (thinking tokens count toward it); length is controlled by page + word targets in the prompt
+- Page / word targets: `quick`→3 pages / ~150, `short`→4 / ~300, `medium`→5 / ~500
+- Structured output (`output_config.format` JSON schema `STORY_SCHEMA`): `{ title, location, refrain, pages }`; a plain-text fallback parser handles non-JSON replies
+- Server-side refusal fallback enabled (`server-side-fallback-2026-07-01`, `fallbacks: 'default'`); a final `stop_reason: 'refusal'` returns 502
 - Input sanitization strips HTML tags before sending to Claude: `.replace(/<[^>]*>/g, '')`
-- Response parsed by extracting `TITLE:` and `STORY:` markers, then splitting on blank lines
 
 **Server env vars:**
 | Var | Purpose |
@@ -112,7 +122,7 @@ React 18 + Vite 6, `"type": "module"`. All routing uses **`createHashRouter`** (
 | Route | File | Purpose |
 |---|---|---|
 | `/#/` | `pages/HomePage.jsx` | Landing page with "Let's build a story" CTA |
-| `/#/build` | `pages/BuildPage.jsx` | Character builder + story settings + generate button |
+| `/#/build` | `pages/BuildPage.jsx` | Character builder + story settings + story style + "Something from today" + generate button |
 | `/#/story` | `pages/StoryPage.jsx` | Displays generated story; receives story via `useLocation().state.story` |
 
 `StoryPage` redirects to `/` if there is no story in router state (direct-link protection).
@@ -125,7 +135,7 @@ React 18 + Vite 6, `"type": "module"`. All routing uses **`createHashRouter`** (
 | `CharacterList.jsx` | Manages array of up to 4 characters; shows cards + add/remove |
 | `CharacterForm.jsx` | Form to add one character. **Important:** rendered as `<div>`, NOT `<form>`, because it lives inside BuildPage's outer `<form>`. The "Add Character" button is `type="button"` with `onClick`. Never wrap this in a `<form>` tag. |
 | `CharacterCard.jsx` | Displays one character pill with emoji, name, description, remove button |
-| `StoryDisplay.jsx` | Paginated story with prev/next navigation, dot indicators, optional Web Speech API read-aloud |
+| `StoryDisplay.jsx` | Paginated story with prev/next navigation, dot indicators, optional Web Speech API read-aloud. Highlights the `refrain` (if any) and preserves `\n` line breaks within a page (verse) |
 | `LoadingSpinner.jsx` | Full-screen overlay shown while Claude generates |
 
 ### Data — SETTINGS and THEMES
@@ -133,14 +143,17 @@ React 18 + Vite 6, `"type": "module"`. All routing uses **`createHashRouter`** (
 Both arrays live at the top of `BuildPage.jsx`. They drive both the UI and (via the server's `buildUserPrompt`) the Claude prompt. When adding new settings or themes:
 - Add to the array in `BuildPage.jsx`
 - The server uses the raw string value in the prompt — no server changes needed
-- For new `length` values, both `BuildPage.jsx` (UI options) **and** `server/index.js` (validation + word count + max_tokens) must be updated
+- For new `length` values, both `BuildPage.jsx` (UI options) **and** `server/index.js` (validation + `WORD_COUNT_MAP` / `PAGE_COUNT_MAP` / `STORY_LENGTH_MAP`) must be updated
 
 **Story length values and word targets:**
-| value | label | words | max_tokens |
+| value | label | pages | words |
 |---|---|---|---|
-| `quick` | 1 min | 80–100 | 300 |
-| `short` | 3 min | 250–300 | 600 |
-| `medium` | 5 min | 450–500 | 900 |
+| `quick` | 1 min | 3 | ~150 |
+| `short` | 3 min | 4 | ~300 |
+| `medium` | 5 min | 5 | ~500 |
+
+**Story styles** (`STYLES` in `BuildPage.jsx`, `STYLE_GUIDE` in `server/index.js` — adding a style requires both):
+`cozy` (calm wind-down, default), `refrain` (repeated chantable line, pattern plot), `rhyme` (AABB verse), `silly` (gentle absurdity, sound words, running gag).
 
 ---
 

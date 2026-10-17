@@ -9,6 +9,8 @@ import styles from './AtlasPage.module.css'
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 const TYPE_EMOJI = Object.fromEntries(CHARACTER_TYPES.map((t) => [t.type, t.emoji]))
 
+const STYLE_EMOJI = { cozy: '🌙', refrain: '🔁', rhyme: '🎶', silly: '🤪' }
+
 function formatDate(ts) {
   return new Date(ts).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
@@ -134,7 +136,10 @@ export default function AtlasPage() {
                 <div className={styles.stories}>
                   {selectedStories.map((s) => (
                     <div key={s.id} className={styles.storyCard}>
-                      <p className={styles.storyTitle}>{s.title}</p>
+                      <p className={styles.storyTitle}>
+                        {STYLE_EMOJI[s.style] && <span aria-hidden="true">{STYLE_EMOJI[s.style]} </span>}
+                        {s.title}
+                      </p>
                       <div className={styles.chars}>
                         {s.characters.map((c) => (
                           <span key={c.name} className={styles.char}>

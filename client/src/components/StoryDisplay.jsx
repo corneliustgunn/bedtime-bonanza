@@ -1,7 +1,19 @@
 import { useState, useEffect, useRef } from 'react'
 import styles from './StoryDisplay.module.css'
 
-export default function StoryDisplay({ title, location, pages }) {
+// Split text around case-insensitive occurrences of the refrain so it can be highlighted.
+function highlightRefrain(text, refrain, className) {
+  if (!refrain) return text
+  const escaped = refrain.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const parts = text.split(new RegExp(`(${escaped})`, 'gi'))
+  return parts.map((part, i) =>
+    part.toLowerCase() === refrain.toLowerCase()
+      ? <strong key={i} className={className}>{part}</strong>
+      : part
+  )
+}
+
+export default function StoryDisplay({ title, location, pages, refrain = '' }) {
   const [currentPage, setCurrentPage] = useState(0)
   const [speaking, setSpeaking] = useState(false)
   const contentRef = useRef(null)
@@ -56,6 +68,12 @@ export default function StoryDisplay({ title, location, pages }) {
         </p>
       )}
 
+      {refrain && (
+        <p className={styles.refrainHint}>
+          <span aria-hidden="true">🔁</span> Say it together: <strong className={styles.refrain}>{refrain}</strong>
+        </p>
+      )}
+
       <div className={styles.pageIndicator} aria-label={`Page ${currentPage + 1} of ${total}`}>
         {pages.map((_, i) => (
           <button
@@ -69,7 +87,9 @@ export default function StoryDisplay({ title, location, pages }) {
       </div>
 
       <div className={styles.storyPage} ref={contentRef} key={currentPage}>
-        <p className={styles.text}>{pages[currentPage]}</p>
+        <p className={styles.text}>
+          {highlightRefrain(pages[currentPage], refrain, styles.refrain)}
+        </p>
       </div>
 
       <div className={styles.nav}>
